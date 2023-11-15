@@ -106,7 +106,7 @@ func processMessage(msg *nats.Msg, cch *cache.Cache) {
 }
 
 func listenForShard(ctx context.Context, ns *nats.Conn, shard string, output chan *nats.Msg) {
-	shardSubject := *config.FlagShardPrefix + ":" + shard
+	shardSubject := *config.FlagShardPrefix + "." + shard
 	subscription, err := ns.ChanSubscribe(shardSubject, output)
 	if err != nil {
 		logrus.Error(err)
