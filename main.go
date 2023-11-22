@@ -41,6 +41,7 @@ func main() {
 	}()
 
 	ns, _, _ := connection.Establish(*config.FlagNatsContext, *config.FlagServer, *config.FlagCreds)
+	defer ns.Drain()
 
 	mergedInput := make(chan *nats.Msg, 1024)
 
@@ -52,10 +53,15 @@ func main() {
 
 	for {
 		select {
+		case <-ctx.Done():
+			return
+		default:
+		}
+
+		select {
 		case msg := <-mergedInput:
 			processMessage(msg, cch)
 		case <-ctx.Done():
-			// We don't need to drain the mergedInput
 			return
 		}
 	}
