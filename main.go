@@ -69,7 +69,7 @@ func main() {
 
 func requestProcessor(cch *cache.Cache) func(c echo.Context) error {
 	return func(c echo.Context) error {
-		previousHashID := c.QueryParam("previous_hash_id")
+		previousHashID := c.QueryParam("prev_hash")
 		shardID := c.QueryParam("shard_id")
 		ans := cch.Get(previousHashID, shardID)
 		if ans == nil {
