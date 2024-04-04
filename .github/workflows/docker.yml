@@ -1,0 +1,50 @@
+name: Docker Image CI
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag'
+        required: true
+  release:
+    types: [created]
+
+jobs:
+  build-and-push:
+    runs-on: github-hosted-heavy-runner
+    steps:
+      - name: Log in to Docker registry
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Determine tags
+        run: |
+          DOCKERHUB_REPO="${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.REPO }}"
+          RELEASE_TAG="${{ github.event.release.tag_name }}"
+          INPUT_TAG="${{ github.event.inputs.tag }}"
+
+          if [[ "$RELEASE_TAG" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "TAGS=$DOCKERHUB_REPO:testnet,$DOCKERHUB_REPO:latest,$DOCKERHUB_REPO:$RELEASE_TAG" >> $GITHUB_ENV
+          else
+            echo "TAGS=$DOCKERHUB_REPO:testnet,$DOCKERHUB_REPO:${RELEASE_TAG:-$INPUT_TAG}" >> $GITHUB_ENV
+          fi
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+
+      - name: Build app
+        run: CGO_ENABLED=0 go build -o app .
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile
+          push: true
+          tags: ${{ env.TAGS }}
