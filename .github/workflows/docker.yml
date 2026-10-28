@@ -22,7 +22,7 @@ jobs:
       - name: Determine tags
         run: |
           REPO_NAME="${GITHUB_REPOSITORY#*/}"
-          DOCKERHUB_REPO="${{ secrets.DOCKERHUB_USERNAME }}/$REPO_NAME"
+          DOCKERHUB_REPO="nearaurora/$REPO_NAME"
           RELEASE_TAG="${{ github.event.release.tag_name }}"
           INPUT_TAG="${{ github.event.inputs.tag }}"
 
